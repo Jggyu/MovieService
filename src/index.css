@@ -44,4 +44,12 @@ code {
   .backface-hidden {
     backface-visibility: hidden;
   }
+
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .backdrop-blur-transition {
+    transition: backdrop-filter 0.3s ease;
+  }
 }
