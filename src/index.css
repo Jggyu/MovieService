@@ -31,3 +31,17 @@ code {
 .translate-z-12 {
   transform: translateZ(12px);
 }
+
+@layer utilities {
+  .perspective {
+    perspective: 2000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
