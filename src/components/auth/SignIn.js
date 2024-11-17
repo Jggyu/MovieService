@@ -50,12 +50,15 @@ const SignIn = () => {
 
       {/* Content */}
       <div className="relative min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+        <div className="relative w-full max-w-md perspective-1000">
           {/* Login Card */}
           <div 
             className={`
-              bg-white rounded-lg shadow-xl p-8 transition-all duration-500
-              ${isLoginVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}
+              absolute w-full bg-white rounded-lg shadow-xl p-8
+              transform transition-all duration-500 ease-in-out
+              ${isLoginVisible 
+                ? 'rotate-y-0 opacity-100 translate-z-0' 
+                : 'rotate-y-180 opacity-0 -translate-z-12 pointer-events-none'}
             `}
           >
             <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
@@ -75,7 +78,7 @@ const SignIn = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  Password (TMDb API Key)
                 </label>
                 <input
                   type="password"
@@ -86,16 +89,16 @@ const SignIn = () => {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transform active:scale-95 transition-all duration-300"
               >
                 Login
               </button>
             </form>
-            <p className="mt-4 text-center text-sm text-gray-600">
+            <p className="mt-6 text-center text-sm text-gray-600">
               Don't have an account?{' '}
               <button
                 onClick={() => setIsLoginVisible(false)}
-                className="text-blue-600 hover:text-blue-500 font-semibold"
+                className="text-blue-600 hover:text-blue-500 font-semibold transition-colors duration-300"
               >
                 Sign up
               </button>
@@ -105,8 +108,11 @@ const SignIn = () => {
           {/* Register Card */}
           <div 
             className={`
-              absolute inset-0 bg-white rounded-lg shadow-xl p-8 transition-all duration-500
-              ${!isLoginVisible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}
+              absolute w-full bg-white rounded-lg shadow-xl p-8
+              transform transition-all duration-500 ease-in-out backface-hidden
+              ${!isLoginVisible 
+                ? 'rotate-y-0 opacity-100 translate-z-0' 
+                : 'rotate-y-180 opacity-0 -translate-z-12 pointer-events-none'}
             `}
           >
             <h2 className="text-2xl font-bold text-gray-900 text-center mb-8">
@@ -126,7 +132,7 @@ const SignIn = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  Password (TMDb API Key)
                 </label>
                 <input
                   type="password"
@@ -148,16 +154,16 @@ const SignIn = () => {
               </div>
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition duration-300"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transform active:scale-95 transition-all duration-300"
               >
                 Register
               </button>
             </form>
-            <p className="mt-4 text-center text-sm text-gray-600">
+            <p className="mt-6 text-center text-sm text-gray-600">
               Already have an account?{' '}
               <button
                 onClick={() => setIsLoginVisible(true)}
-                className="text-blue-600 hover:text-blue-500 font-semibold"
+                className="text-blue-600 hover:text-blue-500 font-semibold transition-colors duration-300"
               >
                 Sign in
               </button>
