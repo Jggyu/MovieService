@@ -1,6 +1,6 @@
 // src/components/auth/SignIn.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect  } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 
@@ -13,6 +13,13 @@ const SignIn = () => {
     password: '',
     confirmPassword: ''
   });
+
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('TMDb-Key');
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -44,7 +51,7 @@ const SignIn = () => {
       <div 
         className="fixed inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1507041957456-9c397ce39c97?q=80&w=2574&auto=format&fit=crop')`,
+            backgroundImage: `url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2525&q=80')`,
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-black/80 to-blue-900/50 backdrop-blur-sm" />
@@ -53,7 +60,7 @@ const SignIn = () => {
       </div>
 
       {/* Content */}
-      <div className="relative min-h-screen flex items-center justify-center px-4">
+      <div className="relative min-h-screen flex items-center justify-center px-4" style={{ marginTop: '-5vh' }}>
         <div className="relative w-full max-w-2xl mx-auto perspective-1000">
           {/* Glowing effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-3xl animate-pulse" />
