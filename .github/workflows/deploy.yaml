@@ -2,9 +2,9 @@ name: Deploy workflow
 
 on:
   push:
-    branches: [ "gitDeploy" ]
+    branches: [ "develop" ]
   pull_request:
-    branches: [ "gitDeploy" ]
+    branches: [ "develop" ]
 
 permissions:
   contents: read
