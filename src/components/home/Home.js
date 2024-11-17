@@ -25,17 +25,22 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-900">
       <Header />
-      <main>
+      <main className="pb-20"> {/* 하단 여백 추가 */}
         {featuredMovie && <Banner movie={featuredMovie} />}
-        <div className="space-y-8 mt-8">
-          <MovieRow title="Popular Movies" fetchUrl={popularMoviesUrl} />
-          <MovieRow title="New Releases" fetchUrl={newReleasesUrl} />
-          <MovieRow title="Action Movies" fetchUrl={actionMoviesUrl} />
+        <div className="space-y-16 mt-12"> {/* space-y-8에서 space-y-16으로, mt-8에서 mt-12로 변경 */}
+          <div className="mt-4"> {/* 각 MovieRow를 div로 감싸서 추가 여백 설정 */}
+            <MovieRow title="Popular Movies" fetchUrl={popularMoviesUrl} />
+          </div>
+          <div className="mt-8">
+            <MovieRow title="New Releases" fetchUrl={newReleasesUrl} />
+          </div>
+          <div className="mt-8">
+            <MovieRow title="Action Movies" fetchUrl={actionMoviesUrl} />
+          </div>
         </div>
       </main>
     </div>
   );
 };
-
 
 export default Home;
