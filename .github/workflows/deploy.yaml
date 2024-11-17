@@ -2,9 +2,9 @@ name: Deploy React App to GitHub Pages
 
 on:
   push:
-    branches: [ "gitDeploy" ]  # 또는 현재 사용 중인 브랜치명
+    branches: [ "develop" ]  # 또는 현재 사용 중인 브랜치명
   pull_request:
-    branches: [ "gitDeploy" ]
+    branches: [ "develop" ]
 
 permissions:
   contents: read
