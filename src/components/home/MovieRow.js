@@ -8,71 +8,73 @@ const MovieRow = ({ title, fetchUrl }) => {
   const [hoveredMovie, setHoveredMovie] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const rowRef = useRef(null);
-  const [isWheeling, setIsWheeling] = useState(false);
-  const wheelingTimeoutRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+  // 영화 데이터 가져오기 (무한 스크롤)
   const fetchMovies = useCallback(async (pageNum) => {
+    if (isLoading || !hasMore) return;
+
     try {
       setIsLoading(true);
       const response = await axios.get(`${fetchUrl}&page=${pageNum}`);
-      if (pageNum === 1) {
-        setMovies(response.data.results);
+      const newMovies = response.data.results;
+      
+      if (newMovies.length > 0) {
+        setMovies(prev => [...prev, ...newMovies]);
+        setPage(prev => prev + 1);
       } else {
-        setMovies(prev => [...prev, ...response.data.results]);
+        setHasMore(false);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching movies:', error);
+    } finally {
       setIsLoading(false);
     }
-  }, [fetchUrl]);
+  }, [fetchUrl, hasMore, isLoading]);
 
   useEffect(() => {
     fetchMovies(1);
   }, [fetchMovies]);
 
-  // 스크롤 핸들링 함수 수정
-  const handleScroll = useCallback((direction, amount = window.innerWidth * 0.8) => {
-    const maxScroll = -((movies.length * 240) - window.innerWidth);
-    const newScrollX = direction === 'left' 
-      ? Math.min(scrollX + amount, 0)
-      : Math.max(scrollX - amount, maxScroll);
+  const calculateScrollMetrics = useCallback(() => {
+    if (!rowRef.current) return { maxScroll: 0 };
+    
+    const container = rowRef.current;
+    const containerWidth = container.offsetWidth;
+    const itemWidth = isMobile ? 180 : 220;
+    const gap = 32;
+    const totalWidth = movies.length * (itemWidth + gap);
+    const maxScroll = -(totalWidth - containerWidth + gap);
+    
+    return { maxScroll, itemWidth };
+  }, [movies.length, isMobile]);
 
-    setScrollX(newScrollX);
+  const scrollToPosition = useCallback((newScrollX) => {
+    const { maxScroll } = calculateScrollMetrics();
+    const clampedScroll = Math.max(Math.min(newScrollX, 0), maxScroll);
+    setScrollX(clampedScroll);
 
-    if (newScrollX < maxScroll + 500 && !isLoading) {
-      setPage(prev => prev + 1);
-      fetchMovies(page + 1);
+    // 끝에 가까워지면 더 많은 영화 로드
+    if (clampedScroll <= maxScroll + 500 && hasMore && !isLoading) {
+      fetchMovies(page);
     }
-  }, [scrollX, movies.length, isLoading, page, fetchMovies]);
+  }, [calculateScrollMetrics, hasMore, isLoading, page, fetchMovies]);
 
-  // 휠 이벤트 핸들러
   const handleWheel = useCallback((e) => {
     e.preventDefault();
-    
-    if (isWheeling) return;
-    
-    setIsWheeling(true);
-    
-    // 휠 방향 감지 (deltaY가 양수면 아래로/오른쪽으로, 음수면 위로/왼쪽으로)
-    const direction = e.deltaY > 0 ? 'right' : 'left';
-    
-    // 스크롤 양을 휠 델타에 비례하게 설정
-    const scrollAmount = Math.min(Math.abs(e.deltaY * 2), window.innerWidth * 0.4);
-    handleScroll(direction, scrollAmount);
+    const sensitivity = 1.5;
+    const delta = e.deltaY * sensitivity;
+    scrollToPosition(scrollX - delta);
+  }, [scrollX, scrollToPosition]);
 
-    // 디바운싱
-    if (wheelingTimeoutRef.current) {
-      clearTimeout(wheelingTimeoutRef.current);
-    }
-    
-    wheelingTimeoutRef.current = setTimeout(() => {
-      setIsWheeling(false);
-    }, 150);
-  }, [isWheeling, handleScroll]);
+  const handleClick = useCallback((direction) => {
+    const moveAmount = window.innerWidth * 0.8;
+    scrollToPosition(scrollX + (direction === 'left' ? moveAmount : -moveAmount));
+  }, [scrollX, scrollToPosition]);
 
   const handleDragStart = (e) => {
     setIsDragging(true);
@@ -84,52 +86,51 @@ const MovieRow = ({ title, fetchUrl }) => {
     
     const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
     const diff = (startX - currentX) * 1.5;
-    const maxScroll = -((movies.length * 240) - window.innerWidth);
-    
-    const newScrollX = Math.max(Math.min(scrollX - diff, 0), maxScroll);
-    setScrollX(newScrollX);
+    scrollToPosition(scrollX - diff);
     setStartX(currentX);
-
-    if (newScrollX < maxScroll + 500 && !isLoading) {
-      setPage(prev => prev + 1);
-      fetchMovies(page + 1);
-    }
-  }, [isDragging, startX, movies.length, scrollX, page, isLoading, fetchMovies]);
+  }, [isDragging, startX, scrollX, scrollToPosition]);
 
   const handleDragEnd = () => {
     setIsDragging(false);
   };
 
   useEffect(() => {
-    const row = rowRef.current;
-    if (row) {
-      // 이벤트 리스너들 추가
-      row.addEventListener('wheel', handleWheel, { passive: false });
-      row.addEventListener('touchstart', handleDragStart, { passive: true });
-      row.addEventListener('touchmove', handleDragMove, { passive: true });
-      row.addEventListener('touchend', handleDragEnd);
-      row.addEventListener('mousedown', handleDragStart);
-      row.addEventListener('mousemove', handleDragMove);
-      row.addEventListener('mouseup', handleDragEnd);
-      row.addEventListener('mouseleave', handleDragEnd);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      const { maxScroll } = calculateScrollMetrics();
+      scrollToPosition(Math.max(scrollX, maxScroll));
+    };
 
-      return () => {
-        // 클린업: 이벤트 리스너들 제거
-        row.removeEventListener('wheel', handleWheel);
-        row.removeEventListener('touchstart', handleDragStart);
-        row.removeEventListener('touchmove', handleDragMove);
-        row.removeEventListener('touchend', handleDragEnd);
-        row.removeEventListener('mousedown', handleDragStart);
-        row.removeEventListener('mousemove', handleDragMove);
-        row.removeEventListener('mouseup', handleDragEnd);
-        row.removeEventListener('mouseleave', handleDragEnd);
-        
-        if (wheelingTimeoutRef.current) {
-          clearTimeout(wheelingTimeoutRef.current);
-        }
-      };
-    }
-  }, [handleDragMove, handleWheel]);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [calculateScrollMetrics, scrollToPosition, scrollX]);
+
+  useEffect(() => {
+    const element = rowRef.current;
+    if (!element) return;
+
+    const options = { passive: false };
+    
+    element.addEventListener('wheel', handleWheel, options);
+    element.addEventListener('touchstart', handleDragStart, { passive: true });
+    element.addEventListener('touchmove', handleDragMove, { passive: true });
+    element.addEventListener('touchend', handleDragEnd);
+    element.addEventListener('mousedown', handleDragStart);
+    element.addEventListener('mousemove', handleDragMove);
+    element.addEventListener('mouseup', handleDragEnd);
+    element.addEventListener('mouseleave', handleDragEnd);
+
+    return () => {
+      element.removeEventListener('wheel', handleWheel, options);
+      element.removeEventListener('touchstart', handleDragStart);
+      element.removeEventListener('touchmove', handleDragMove);
+      element.removeEventListener('touchend', handleDragEnd);
+      element.removeEventListener('mousedown', handleDragStart);
+      element.removeEventListener('mousemove', handleDragMove);
+      element.removeEventListener('mouseup', handleDragEnd);
+      element.removeEventListener('mouseleave', handleDragEnd);
+    };
+  }, [handleWheel, handleDragMove]);
 
   return (
     <div className="py-8 space-y-4 group select-none">
@@ -142,7 +143,11 @@ const MovieRow = ({ title, fetchUrl }) => {
                       transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
       </div>
 
-      <div className="relative" ref={rowRef}>
+      <div 
+        className="relative touch-pan-x" 
+        ref={rowRef}
+        style={{ willChange: 'transform' }}
+      >
         <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-gray-900 to-transparent z-10" />
         <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-gray-900 to-transparent z-10" />
 
@@ -153,36 +158,53 @@ const MovieRow = ({ title, fetchUrl }) => {
                    bg-black/50 text-white rounded-full transform -translate-y-1/2 
                    backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300
                    border border-white/10 hover:border-white/30"
-          onClick={() => handleScroll('left')}
+          onClick={() => handleClick('left')}
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </motion.button>
 
-        <div className="overflow-visible mx-4">
+        <div className="overflow-visible px-4">
           <motion.div 
-            className="flex gap-12 px-8"
-            animate={{ x: scrollX }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+            className="flex gap-16"
+            style={{ 
+              x: scrollX,
+              cursor: isDragging ? 'grabbing' : 'grab'
+            }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 50,
+              damping: 14,
+              mass: 0.8
+            }}
           >
             {movies.map((movie) => (
               <motion.div 
                 key={movie.id}
-                className="relative flex-none w-[180px] md:w-[200px] lg:w-[220px]
-                         transform-gpu transition-all duration-300"
-                initial={{ scale: 1 }}
-                whileHover={{ 
-                  scale: 1.3,
-                  zIndex: 30,
-                  transition: { duration: 0.2 }
+                className={`
+                  relative flex-none
+                  w-[180px] md:w-[200px] lg:w-[220px]
+                  transform-gpu transition-all duration-300
+                  hover:z-30
+                `}
+                initial={false}
+                whileHover={{
+                  scale: 1.5,
+                  transition: {
+                    duration: 0.3,
+                    ease: "easeOut"
+                  }
                 }}
                 onHoverStart={() => setHoveredMovie(movie.id)}
                 onHoverEnd={() => setHoveredMovie(null)}
               >
-                <div className="relative rounded-lg overflow-hidden aspect-[2/3] bg-gray-800
-                             shadow-lg transition-all duration-300 hover:shadow-2xl">
+                <div className={`
+                  relative rounded-lg overflow-hidden aspect-[2/3]
+                  bg-gray-800 shadow-lg
+                  transition-all duration-300
+                  ${hoveredMovie === movie.id ? 'shadow-2xl ring-2 ring-white/20' : ''}
+                `}>
                   <img
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
@@ -229,12 +251,18 @@ const MovieRow = ({ title, fetchUrl }) => {
                    bg-black/50 text-white rounded-full transform -translate-y-1/2 
                    backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300
                    border border-white/10 hover:border-white/30"
-          onClick={() => handleScroll('right')}
+          onClick={() => handleClick('right')}
         >
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </motion.button>
+
+        {isLoading && (
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 pb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white/50" />
+          </div>
+        )}
       </div>
     </div>
   );
