@@ -1,7 +1,7 @@
 {
   "name": "movieservice",
   "version": "0.1.0",
-  "homepage": "jggyu.github.io/MovieService",
+  "homepage": "https://jggyu.github.io/MovieService",
   "private": true,
   "dependencies": {
     "@emotion/babel-plugin": "^11.12.0",
