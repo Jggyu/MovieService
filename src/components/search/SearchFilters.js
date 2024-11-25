@@ -3,16 +3,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faTimes, 
   faSort,
-  faFilter,
   faStar,
   faFilm,
   faGlobe,
-  faCalendarAlt
+  faCalendarAlt,
+  faRotateLeft
 } from '@fortawesome/free-solid-svg-icons';
 
-const SearchFilters = ({ filters, onChange, onClose }) => {
+const SearchFilters = ({ filters, onChange, onReset }) => {
   // 장르 목록
   const genres = [
     { id: 28, name: '액션' },
@@ -72,64 +71,36 @@ const SearchFilters = ({ filters, onChange, onClose }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="absolute right-0 top-0 h-full w-full max-w-md bg-gray-900 p-6 overflow-y-auto"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Filter Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold text-white flex items-center">
-            <FontAwesomeIcon icon={faFilter} className="mr-3 text-blue-500" />
-            필터
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Sort Section */}
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-white flex items-center">
+            <FontAwesomeIcon icon={faSort} className="mr-2 text-purple-500" />
+            정렬
+          </h3>
+          <select
+            value={filters.sort}
+            onChange={(e) => onChange({ ...filters, sort: e.target.value })}
+            className="w-full bg-gray-700/50 text-white rounded-lg px-4 py-2.5 
+                     border border-gray-600 focus:border-blue-500 focus:ring-1 
+                     focus:ring-blue-500 outline-none text-sm"
           >
-            <FontAwesomeIcon icon={faTimes} className="text-gray-400 text-xl" />
-          </button>
+            {sortOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {/* Filter Sections */}
-        <div className="space-y-8">
-          {/* Sort Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <FontAwesomeIcon icon={faSort} className="mr-2 text-purple-500" />
-              정렬
-            </h3>
-            <select
-              value={filters.sort}
-              onChange={(e) => onChange({ ...filters, sort: e.target.value })}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 
-                         border border-gray-700 focus:border-blue-500 focus:ring-1 
-                         focus:ring-blue-500 outline-none"
-            >
-              {sortOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Rating Filter */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <FontAwesomeIcon icon={faStar} className="mr-2 text-yellow-500" />
-              최소 평점
-            </h3>
+        {/* Rating Filter */}
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-white flex items-center">
+            <FontAwesomeIcon icon={faStar} className="mr-2 text-yellow-500" />
+            최소 평점
+          </h3>
+          <div className="space-y-2">
             <input
               type="range"
               min="0"
@@ -139,77 +110,92 @@ const SearchFilters = ({ filters, onChange, onClose }) => {
               onChange={(e) => onChange({ ...filters, rating: parseFloat(e.target.value) || null })}
               className="w-full accent-yellow-500"
             />
-            <div className="text-center text-white">
+            <div className="text-center text-sm text-white">
               {filters.rating ? `${filters.rating}점 이상` : '제한 없음'}
             </div>
           </div>
+        </div>
 
-          {/* Year Filter */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-green-500" />
-              개봉년도
-            </h3>
-            <select
-              value={filters.year || ''}
-              onChange={(e) => onChange({ ...filters, year: e.target.value ? parseInt(e.target.value) : null })}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-3 
-                         border border-gray-700 focus:border-blue-500 focus:ring-1 
-                         focus:ring-blue-500 outline-none"
-            >
-              <option value="">전체</option>
-              {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                <option key={year} value={year}>{year}년</option>
-              ))}
-            </select>
-          </div>
+        {/* Year Filter */}
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-white flex items-center">
+            <FontAwesomeIcon icon={faCalendarAlt} className="mr-2 text-green-500" />
+            개봉년도
+          </h3>
+          <select
+            value={filters.year || ''}
+            onChange={(e) => onChange({ ...filters, year: e.target.value ? parseInt(e.target.value) : null })}
+            className="w-full bg-gray-700/50 text-white rounded-lg px-4 py-2.5 
+                     border border-gray-600 focus:border-blue-500 focus:ring-1 
+                     focus:ring-blue-500 outline-none text-sm"
+          >
+            <option value="">전체</option>
+            {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - i).map(year => (
+              <option key={year} value={year}>{year}년</option>
+            ))}
+          </select>
+        </div>
 
-          {/* Genre Filter */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <FontAwesomeIcon icon={faFilm} className="mr-2 text-red-500" />
-              장르
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {genres.map(genre => (
-                <button
-                  key={genre.id}
-                  onClick={() => handleGenreToggle(genre.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all
-                             ${filters.genre.includes(genre.id)
-                               ? 'bg-blue-500 text-white'
-                               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-                >
-                  {genre.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Language Filter */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center">
-              <FontAwesomeIcon icon={faGlobe} className="mr-2 text-cyan-500" />
-              언어
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {languages.map(lang => (
-                <button
-                  key={lang.code}
-                  onClick={() => handleLanguageToggle(lang.code)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all
-                             ${filters.language.includes(lang.code)
-                               ? 'bg-purple-500 text-white'
-                               : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </div>
+        {/* Language Filter */}
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-white flex items-center">
+            <FontAwesomeIcon icon={faGlobe} className="mr-2 text-cyan-500" />
+            언어
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {languages.map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => handleLanguageToggle(lang.code)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                         ${filters.language.includes(lang.code)
+                           ? 'bg-cyan-500 text-white'
+                           : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
+              >
+                {lang.name}
+              </button>
+            ))}
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+
+      {/* Genre Filter */}
+      <div className="mt-6 space-y-3">
+        <h3 className="text-base font-semibold text-white flex items-center">
+          <FontAwesomeIcon icon={faFilm} className="mr-2 text-red-500" />
+          장르
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {genres.map(genre => (
+            <motion.button
+              key={genre.id}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleGenreToggle(genre.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
+                       ${filters.genre.includes(genre.id)
+                         ? 'bg-red-500 text-white'
+                         : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
+            >
+              {genre.name}
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Reset Button */}
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onReset}
+        className="mt-6 px-6 py-2.5 bg-gray-700/50 hover:bg-gray-600/50 
+                 text-gray-300 rounded-lg flex items-center justify-center 
+                 space-x-2 w-full transition-colors"
+      >
+        <FontAwesomeIcon icon={faRotateLeft} />
+        <span>필터 초기화</span>
+      </motion.button>
+    </div>
   );
 };
 
