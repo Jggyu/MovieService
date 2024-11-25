@@ -11,8 +11,9 @@ import {
 import { authService } from '../../services/authService';
 import { wishlistService } from '../../services/wishlistService';
 
-const SearchResults = ({ movies, loading }) => {
+const SearchResults = ({ movies, loading, isSearching, searchQuery }) => {
   const [wishlistStates, setWishlistStates] = useState({});
+  const [imageLoading, setImageLoading] = useState({});
   const currentUser = authService.getCurrentUser();
 
   const handleWishlistToggle = (movie) => {
@@ -25,33 +26,48 @@ const SearchResults = ({ movies, loading }) => {
     }));
   };
 
+  const handleImageLoad = (movieId) => {
+    setImageLoading(prev => ({
+      ...prev,
+      [movieId]: false
+    }));
+  };
+
+  const handleImageLoadStart = (movieId) => {
+    setImageLoading(prev => ({
+      ...prev,
+      [movieId]: true
+    }));
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+        <p className="text-gray-400 animate-pulse">영화 정보를 불러오는 중...</p>
       </div>
     );
   }
 
   if (movies.length === 0) {
     return (
-        <div className="text-center py-20">
-          {isSearching ? (
-            <div className="space-y-2">
-              <p className="text-gray-400 text-lg">
-                '{searchQuery}'에 대한 검색 결과가 없습니다
-              </p>
-              <p className="text-gray-500">
-                다른 검색어를 입력하거나 필터를 조정해보세요
-              </p>
-            </div>
-          ) : (
+      <div className="text-center py-20">
+        {isSearching ? (
+          <div className="space-y-2">
             <p className="text-gray-400 text-lg">
-              필터링된 결과가 없습니다
+              '{searchQuery}'에 대한 검색 결과가 없습니다
             </p>
-          )}
-        </div>
-      );
+            <p className="text-gray-500">
+              다른 검색어를 입력하거나 필터를 조정해보세요
+            </p>
+          </div>
+        ) : (
+          <p className="text-gray-400 text-lg">
+            필터링된 결과가 없습니다
+          </p>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -66,11 +82,24 @@ const SearchResults = ({ movies, loading }) => {
           <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg
                         transform transition-all duration-300 group-hover:scale-105">
             <div className="relative aspect-[2/3]">
+              {/* 이미지 로딩 플레이스홀더 */}
+              {imageLoading[movie.id] && (
+                <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+                  <div className="animate-pulse flex flex-col items-center space-y-2">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-gray-400">로딩중...</span>
+                  </div>
+                </div>
+              )}
               <img
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
-                className="w-full h-full object-cover"
+                className={`w-full h-full object-cover transition-opacity duration-300
+                           ${imageLoading[movie.id] ? 'opacity-0' : 'opacity-100'}`}
                 loading="lazy"
+                onLoadStart={() => handleImageLoadStart(movie.id)}
+                onLoad={() => handleImageLoad(movie.id)}
+                onError={() => handleImageLoad(movie.id)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
