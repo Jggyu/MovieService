@@ -46,6 +46,9 @@ module.exports = {
           }
         },
       },
+      gridTemplateColumns: {
+        '14': 'repeat(14, minmax(0, 1fr))',
+      },
     },
   },
   plugins: [],
