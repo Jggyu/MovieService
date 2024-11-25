@@ -1,4 +1,4 @@
-// src/components/popular/InfiniteView.js
+// src/components/popular/InfiniteView.js - Part 1
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +9,6 @@ import {
   faCalendarAlt,
   faLanguage,
   faThumbsUp,
-  faFilm
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { authService } from '../../services/authService';
@@ -21,8 +20,7 @@ const InfiniteView = ({ apiKey }) => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [showTopButton, setShowTopButton] = useState(false);
-  const [selectedMovie, setSelectedMovie] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [wishlistStates, setWishlistStates] = useState({});
   const observer = useRef();
   const loadingRef = useRef(null);
   const currentUser = authService.getCurrentUser();
@@ -37,13 +35,23 @@ const InfiniteView = ({ apiKey }) => {
       const newMovies = response.data.results;
       setMovies(prev => [...prev, ...newMovies]);
       setHasMore(pageNum < Math.min(response.data.total_pages, 500));
-      setLoading(false);
+
+      // Update wishlist states for new movies
+      if (currentUser) {
+        const states = { ...wishlistStates };
+        newMovies.forEach(movie => {
+          states[movie.id] = wishlistService.isInWishlist(currentUser, movie.id);
+        });
+        setWishlistStates(states);
+      }
     } catch (error) {
       console.error('Error fetching movies:', error);
+    } finally {
       setLoading(false);
     }
   };
 
+  // Intersection Observer setup
   const lastMovieRef = useCallback(node => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
@@ -78,171 +86,155 @@ const InfiniteView = ({ apiKey }) => {
   };
 
   const handleWishlistToggle = (movie) => {
-    if (!currentUser) {
-      console.log('No user logged in');
-      return;
-    }
+    if (!currentUser) return;
 
-    console.log('Toggling wishlist for user:', currentUser);
-    console.log('Movie:', movie);
     const wasAdded = wishlistService.toggleWishlist(currentUser, movie);
-  
-  // Optional: Add some feedback
-    if (wasAdded) {
-      console.log('Movie added to wishlist');
-    } else {
-      console.log('Movie removed from wishlist');
-    }
+    setWishlistStates(prev => ({
+      ...prev,
+      [movie.id]: wasAdded
+    }));
   };
+// src/components/popular/InfiniteView.js - Part 2
+return (
+  <>
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+      {movies.map((movie, index) => (
+        <motion.div
+          key={`${movie.id}-${index}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative group"
+          ref={index === movies.length - 1 ? lastMovieRef : null}
+        >
+          {/* Movie Card */}
+          <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg transform 
+                        transition-all duration-300 group-hover:scale-105">
+            <div className="relative aspect-[2/3]">
+              {/* Movie Poster */}
+              <img
+                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+              
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
-  return (
-    <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {movies.map((movie, index) => (
-          <motion.div
-            key={`${movie.id}-${index}`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="relative group"
-            ref={index === movies.length - 1 ? lastMovieRef : null}
-          >
-            {/* Movie Card */}
-            <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform 
-                          transition-all duration-300 group-hover:scale-105">
-              <div className="relative aspect-[2/3]">
-                <img
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+              {/* Wishlist Button - Always Visible */}
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleWishlistToggle(movie);
+                }}
+                className={`absolute top-3 right-3 w-9 h-9 rounded-full flex items-center justify-center
+                          transition-all duration-200 z-10 ${
+                            wishlistStates[movie.id]
+                              ? 'bg-red-500 text-white'
+                              : 'bg-black/50 backdrop-blur-sm text-white/70 hover:bg-black/70'
+                          }`}
+              >
+                <FontAwesomeIcon 
+                  icon={faHeart} 
+                  className={`transition-transform duration-200 ${
+                    wishlistStates[movie.id] ? 'scale-110' : 'scale-100'
+                  }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+              </motion.button>
 
-                {/* Basic Info (Always Visible) */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white font-bold text-lg line-clamp-2">{movie.title}</h3>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+              {/* Basic Info (Always Visible) */}
+              <div className="absolute bottom-0 left-0 right-0 p-4">
+                <h3 className="text-white font-bold text-base md:text-lg line-clamp-2 mb-1">
+                  {movie.title}
+                </h3>
+                <div className="flex items-center space-x-2 text-sm">
+                  <div className="flex items-center">
+                    <FontAwesomeIcon icon={faStar} className="text-yellow-500 mr-1" />
                     <span className="text-white">{movie.vote_average.toFixed(1)}</span>
-                    <span className="text-gray-300">
-                      ({new Date(movie.release_date).getFullYear()})
-                    </span>
                   </div>
+                  <span className="text-gray-300">
+                    {new Date(movie.release_date).getFullYear()}
+                  </span>
                 </div>
+              </div>
 
-                {/* Overlay (Visible on Hover) */}
-                <div className="absolute inset-0 bg-black/90 opacity-0 group-hover:opacity-100 
-                            transition-opacity duration-300 p-6 flex flex-col justify-between">
-                  <div className="space-y-4">
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/95 opacity-0 group-hover:opacity-100 
+                            transition-all duration-300 p-4 flex flex-col">
+                <div className="flex-1 overflow-hidden">
+                  <div className="space-y-3">
+                    {/* Title Section */}
                     <div>
-                      <h3 className="text-white font-bold text-lg mb-1">{movie.title}</h3>
-                      <p className="text-sm text-gray-400">{movie.original_title}</p>
+                      <h3 className="text-white font-bold text-base mb-0.5 line-clamp-2">
+                        {movie.title}
+                      </h3>
+                      <p className="text-xs text-gray-400 line-clamp-1">
+                        {movie.original_title}
+                      </p>
                     </div>
 
-                    <p className="text-sm text-gray-300 line-clamp-6">
+                    {/* Overview */}
+                    <p className="text-xs text-gray-300 line-clamp-4">
                       {movie.overview || "줄거리 정보가 없습니다."}
                     </p>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center text-sm text-gray-300">
-                        <FontAwesomeIcon icon={faCalendarAlt} className="w-5 text-blue-400" />
+                    {/* Movie Details */}
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center text-gray-300">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="w-3.5 text-blue-400" />
                         <span className="ml-2">
-                          {new Date(movie.release_date).toLocaleDateString('ko-KR')}
+                          {new Date(movie.release_date).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
                         </span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-300">
-                        <FontAwesomeIcon icon={faLanguage} className="w-5 text-purple-400" />
-                        <span className="ml-2">
-                          {movie.original_language.toUpperCase()}
-                        </span>
+                      <div className="flex items-center text-gray-300">
+                        <FontAwesomeIcon icon={faLanguage} className="w-3.5 text-purple-400" />
+                        <span className="ml-2">{movie.original_language.toUpperCase()}</span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-300">
-                        <FontAwesomeIcon icon={faThumbsUp} className="w-5 text-green-400" />
-                        <span className="ml-2">
-                          {movie.vote_count.toLocaleString()}명이 평가
-                        </span>
+                      <div className="flex items-center text-gray-300">
+                        <FontAwesomeIcon icon={faThumbsUp} className="w-3.5 text-green-400" />
+                        <span className="ml-2">{movie.vote_count.toLocaleString()}명이 평가</span>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex justify-center space-x-3">
-                    <motion.button
-                      onClick={() => setSelectedMovie(movie)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium
-                               hover:bg-blue-700 transition-colors flex items-center justify-center"
-                    >
-                      <FontAwesomeIcon icon={faFilm} className="mr-2" />
-                      상세정보
-                    </motion.button>
-                    <motion.button
-                      onClick={() => handleWishlistToggle(movie)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`flex-1 py-2 rounded-lg font-medium flex items-center justify-center
-                                ${wishlistService.isInWishlist(currentUser, movie.id)
-                                  ? 'bg-red-600 text-white hover:bg-red-700'
-                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                    >
-                      <FontAwesomeIcon icon={faHeart} className="mr-2" />
-                      찜하기
-                    </motion.button>
                   </div>
                 </div>
               </div>
             </div>
-          </motion.div>
-        ))}
+          </div>
+        </motion.div>
+      ))}
+    </div>
+
+    {/* Loading Indicator */}
+    {loading && (
+      <div ref={loadingRef} className="flex justify-center items-center py-8">
+        <div className="w-10 h-10 rounded-full border-3 border-gray-300 border-t-blue-500 animate-spin"/>
       </div>
+    )}
 
-      {loading && (
-        <div ref={loadingRef} className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-        </div>
+    {/* Scroll to Top Button */}
+    <AnimatePresence>
+      {showTopButton && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5 }}
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 bg-blue-600 text-white p-4 rounded-full 
+                   shadow-lg hover:bg-blue-700 transition-colors duration-300"
+        >
+          <FontAwesomeIcon icon={faArrowUp} />
+        </motion.button>
       )}
-
-      <AnimatePresence>
-        {showTopButton && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.5 }}
-            onClick={scrollToTop}
-            className="fixed bottom-8 right-8 bg-blue-600 text-white p-4 rounded-full 
-                     shadow-lg hover:bg-blue-700 transition-colors duration-300"
-          >
-            <FontAwesomeIcon icon={faArrowUp} />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      {/* Movie Detail Modal */}
-      <AnimatePresence>
-        {selectedMovie && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
-            onClick={() => setSelectedMovie(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-gray-900 rounded-xl max-w-2xl w-full overflow-hidden"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Modal content */}
-              {/* Add detailed movie information here */}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
-  );
+    </AnimatePresence>
+  </>
+);
 };
 
 export default InfiniteView;
