@@ -15,39 +15,73 @@ import {
 import Header from '../layout/Header';
 import { authService } from '../../services/authService';
 import { wishlistService } from '../../services/wishlistService';
+import { useNavigate } from 'react-router-dom';
 
 const Wishlist = () => {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const currentUser = authService.getCurrentUser();
+  const navigate = useNavigate();
+  
+  // currentUser를 state로 관리
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    // 컴포넌트 마운트 시 현재 사용자 확인
+    const user = authService.getCurrentUser();
+    console.log('Current user:', user);
+    
+    if (!user) {
+      navigate('/signin');
+      return;
+    }
+    
+    setCurrentUser(user);
+  }, [navigate]);
 
   useEffect(() => {
     if (currentUser) {
       loadWishlist();
     }
-    setIsLoading(false);
   }, [currentUser]);
 
   const loadWishlist = () => {
-    if (currentUser) {
-      try {
-        const wishlistMovies = wishlistService.getWishlist(currentUser);
-        console.log('Loaded wishlist:', wishlistMovies); // 디버깅용
-        setMovies(wishlistMovies);
-      } catch (error) {
-        console.error('Error loading wishlist:', error);
-      }
+    if (!currentUser) {
+      console.log('No user found');
+      return;
+    }
+
+    try {
+      console.log('Loading wishlist for user:', currentUser);
+      const wishlistMovies = wishlistService.getWishlist(currentUser);
+      console.log('Loaded wishlist movies:', wishlistMovies);
+      setMovies(wishlistMovies || []);
+    } catch (error) {
+      console.error('Error loading wishlist:', error);
+      setMovies([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRemove = (movieId) => {
-    if (currentUser) {
-      wishlistService.removeFromWishlist(currentUser, movieId);
-      loadWishlist();
-    }
+    if (!currentUser) return;
+
+    wishlistService.removeFromWishlist(currentUser, movieId);
+    loadWishlist(); // 삭제 후 위시리스트 다시 로드
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+        <Header />
+        <div className="flex justify-center items-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"/>
+        </div>
+      </div>
+    );
+  }
 
   const container = {
     hidden: { opacity: 0 },

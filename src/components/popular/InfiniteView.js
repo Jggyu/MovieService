@@ -78,8 +78,21 @@ const InfiniteView = ({ apiKey }) => {
   };
 
   const handleWishlistToggle = (movie) => {
-    if (!currentUser) return;
-    wishlistService.toggleWishlist(currentUser, movie);
+    if (!currentUser) {
+      console.log('No user logged in');
+      return;
+    }
+
+    console.log('Toggling wishlist for user:', currentUser);
+    console.log('Movie:', movie);
+    const wasAdded = wishlistService.toggleWishlist(currentUser, movie);
+  
+  // Optional: Add some feedback
+    if (wasAdded) {
+      console.log('Movie added to wishlist');
+    } else {
+      console.log('Movie removed from wishlist');
+    }
   };
 
   return (
