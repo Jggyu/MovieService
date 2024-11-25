@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faSearch,
   faFilter,
   faTimes,
-  faSort
+  faChevronDown,
+  faChevronUp
 } from '@fortawesome/free-solid-svg-icons';
+import Header from '../layout/Header';
 import SearchFilters from './SearchFilters';
 import SearchResults from './SearchResults';
 import FilterChips from './FilterChips';
@@ -68,15 +69,12 @@ const MovieSearch = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black px-4 py-24"
-    >
-      {/* Search Header */}
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
+        {/* Search Header */}
+        <div className="text-center space-y-4 mb-8">
           <motion.h1
             initial={{ y: -20 }}
             animate={{ y: 0 }}
@@ -91,28 +89,38 @@ const MovieSearch = () => {
         </div>
 
         {/* Filter Controls */}
-        <div className="flex justify-between items-center">
+        <div className="mb-8">
           <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setIsFilterOpen(true)}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl
-                     text-white flex items-center space-x-2 backdrop-blur-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl
+                     text-white flex items-center justify-between backdrop-blur-sm"
           >
-            <FontAwesomeIcon icon={faFilter} />
-            <span>필터</span>
+            <span className="flex items-center">
+              <FontAwesomeIcon icon={faFilter} className="mr-2" />
+              필터 설정
+            </span>
+            <FontAwesomeIcon icon={isFilterOpen ? faChevronUp : faChevronDown} />
           </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleResetFilters}
-            className="px-6 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500
-                     rounded-xl flex items-center space-x-2 backdrop-blur-sm"
-          >
-            <FontAwesomeIcon icon={faTimes} />
-            <span>초기화</span>
-          </motion.button>
+          <AnimatePresence>
+            {isFilterOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <SearchFilters
+                  filters={filters}
+                  onChange={handleFilterChange}
+                  onReset={handleResetFilters}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Active Filters */}
@@ -124,18 +132,7 @@ const MovieSearch = () => {
           loading={loading}
         />
       </div>
-
-      {/* Filter Sidebar */}
-      <AnimatePresence>
-        {isFilterOpen && (
-          <SearchFilters
-            filters={filters}
-            onChange={handleFilterChange}
-            onClose={() => setIsFilterOpen(false)}
-          />
-        )}
-      </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
