@@ -3,8 +3,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from './components/auth/SignIn';
 import Home from './components/home/Home';
-import Popular from './components/popular/Popular';
-import Wishlist from './components/wishlist/Wishlist';
+//import Popular from './components/popular/Popular';
+//import Wishlist from './components/wishlist/Wishlist';
 import { AuthGuard } from './guards/AuthGuard';
 
 function App() {
