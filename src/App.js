@@ -5,6 +5,7 @@ import SignIn from './components/auth/SignIn';
 import Home from './components/home/Home';
 import Popular from './components/popular/Popular';
 import Wishlist from './components/wishlist/Wishlist';
+import MovieSearch from './components/search/MovieSearch';
 import { AuthGuard } from './guards/AuthGuard';
 
 function App() {
@@ -40,7 +41,15 @@ function App() {
           }
         />
         
-        
+        <Route
+          path="/search"
+          element={
+            <AuthGuard>
+              <MovieSearch />
+            </AuthGuard>
+          }
+        />
+
         <Route path="/signin" element={<SignIn />} />
         
         {/* 잘못된 경로로 접근 시 인증 상태 체크 후 리다이렉트 */}
