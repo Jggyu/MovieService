@@ -22,7 +22,7 @@ function App() {
         />
         
         {/* Popular 페이지 경로 추가 */}
-        <Route
+        {/* <Route
           path="/popular"
           element={
             <AuthGuard>
@@ -38,7 +38,7 @@ function App() {
               <Wishlist />
             </AuthGuard>
           }
-        />
+        /> */}
         
         <Route path="/signin" element={<SignIn />} />
         
