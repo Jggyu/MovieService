@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import SignIn from './components/auth/SignIn';
 import Home from './components/home/Home';
 import Popular from './components/popular/Popular';
-//import Wishlist from './components/wishlist/Wishlist';
+import Wishlist from './components/wishlist/Wishlist';
 import { AuthGuard } from './guards/AuthGuard';
 
 function App() {
@@ -31,14 +31,14 @@ function App() {
           }
         />
 
-        {/* <Route
+        <Route
           path="/wishlist"
           element={
             <AuthGuard>
               <Wishlist />
             </AuthGuard>
           }
-        /> */}
+        />
         
         <Route path="/signin" element={<SignIn />} />
         
