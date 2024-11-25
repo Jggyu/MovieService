@@ -4,13 +4,17 @@ import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar, faChevronLeft, faChevronRight, faHeart } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
+import { authService } from '../../services/authService';
+import { wishlistService } from '../../services/wishlistService';
 
 const TableView = ({ apiKey }) => {
   const [movies, setMovies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const moviesPerPage = 6; // 한 페이지당 표시할 영화 수
+  const [wishlistStates, setWishlistStates] = useState({});
+  const moviesPerPage = 6;
+  const currentUser = authService.getCurrentUser();
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -21,6 +25,15 @@ const TableView = ({ apiKey }) => {
         );
         setMovies(response.data.results);
         setTotalPages(Math.min(response.data.total_pages, 500));
+        
+        // 각 영화의 위시리스트 상태 확인
+        if (currentUser) {
+          const states = {};
+          response.data.results.forEach(movie => {
+            states[movie.id] = wishlistService.isInWishlist(currentUser, movie.id);
+          });
+          setWishlistStates(states);
+        }
       } catch (error) {
         console.error('Error fetching movies:', error);
       } finally {
@@ -29,13 +42,23 @@ const TableView = ({ apiKey }) => {
     };
 
     fetchMovies();
-  }, [apiKey, currentPage]);
+  }, [apiKey, currentPage, currentUser]);
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
       window.scrollTo(0, 0);
     }
+  };
+
+  const handleWishlistToggle = (movie) => {
+    if (!currentUser) return;
+
+    const wasAdded = wishlistService.toggleWishlist(currentUser, movie);
+    setWishlistStates(prev => ({
+      ...prev,
+      [movie.id]: wasAdded
+    }));
   };
 
   return (
@@ -116,13 +139,24 @@ const TableView = ({ apiKey }) => {
               </span>
             </div>
 
-            {/* Wishlist Button */}
+            {/* Wishlist Button - 수정됨 */}
             <div className="col-span-1 text-center">
-              <button className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 
-                               text-gray-400 hover:text-red-500 transition-all duration-200
-                               flex items-center justify-center">
-                <FontAwesomeIcon icon={faHeart} />
-              </button>
+              <motion.button
+                onClick={() => handleWishlistToggle(movie)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className={`w-8 h-8 rounded-full transition-all duration-200
+                          flex items-center justify-center
+                          ${wishlistStates[movie.id] 
+                            ? 'bg-red-600 text-white hover:bg-red-700' 
+                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-red-500'}`}
+              >
+                <FontAwesomeIcon 
+                  icon={faHeart} 
+                  className={`transition-transform duration-200
+                            ${wishlistStates[movie.id] ? 'scale-110' : 'scale-100'}`}
+                />
+              </motion.button>
             </div>
           </motion.div>
         ))}
