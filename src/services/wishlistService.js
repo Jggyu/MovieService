@@ -3,8 +3,11 @@ export const wishlistService = {
     getWishlist: (userId) => {
       try {
         const wishlists = JSON.parse(localStorage.getItem('wishlists') || '{}');
-        console.log('Wishlists data:', wishlists); // 디버깅용
-        return wishlists[userId] || [];
+        console.log('Getting wishlist for user:', userId);
+        console.log('Current wishlists:', wishlists);
+        const userWishlist = wishlists[userId] || [];
+        console.log('User wishlist:', userWishlist);
+        return userWishlist;
       } catch (error) {
         console.error('Error getting wishlist:', error);
         return [];
@@ -27,6 +30,7 @@ export const wishlistService = {
         
         wishlists[userId] = userWishlist;
         localStorage.setItem('wishlists', JSON.stringify(wishlists));
+        console.log('Updated wishlists:', wishlists);
         
         return existingIndex < 0;
       } catch (error) {
@@ -44,6 +48,7 @@ export const wishlistService = {
         
         wishlists[userId] = userWishlist.filter(movie => movie.id !== movieId);
         localStorage.setItem('wishlists', JSON.stringify(wishlists));
+        console.log('Movie removed, updated wishlists:', wishlists);
       } catch (error) {
         console.error('Error removing from wishlist:', error);
       }
