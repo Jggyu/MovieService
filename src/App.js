@@ -1,19 +1,15 @@
 // src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import Home from './components/home/Home';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignIn from './components/auth/SignIn';
+import Home from './components/home/Home';
 import { AuthGuard } from './guards/AuthGuard';
 
-// Transition을 위한 wrapper component
-const AnimatedRoutes = () => {
-  const location = useLocation();
-
+function App() {
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/signin" element={<SignIn />} />
+    <Router>
+      <Routes>
+        {/* 초기 경로 "/" 접속 시 인증 상태 체크 후 리다이렉트 */}
         <Route
           path="/"
           element={
@@ -22,15 +18,18 @@ const AnimatedRoutes = () => {
             </AuthGuard>
           }
         />
+        <Route path="/signin" element={<SignIn />} />
+        
+        {/* 잘못된 경로로 접근 시 인증 상태 체크 후 리다이렉트 */}
+        <Route 
+          path="*" 
+          element={
+            localStorage.getItem('TMDb-Key') 
+              ? <Navigate to="/" replace /> 
+              : <Navigate to="/signin" replace />
+          }
+        />
       </Routes>
-    </AnimatePresence>
-  );
-};
-
-function App() {
-  return (
-    <Router>
-      <AnimatedRoutes />
     </Router>
   );
 }
