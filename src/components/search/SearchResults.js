@@ -35,10 +35,23 @@ const SearchResults = ({ movies, loading }) => {
 
   if (movies.length === 0) {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-400 text-lg">검색 결과가 없습니다</p>
-      </div>
-    );
+        <div className="text-center py-20">
+          {isSearching ? (
+            <div className="space-y-2">
+              <p className="text-gray-400 text-lg">
+                '{searchQuery}'에 대한 검색 결과가 없습니다
+              </p>
+              <p className="text-gray-500">
+                다른 검색어를 입력하거나 필터를 조정해보세요
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-lg">
+              필터링된 결과가 없습니다
+            </p>
+          )}
+        </div>
+      );
   }
 
   return (
