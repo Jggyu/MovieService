@@ -1,4 +1,4 @@
-// src/components/popular/TableView.js - Part 1
+// src/components/popular/TableView.js
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -14,17 +14,20 @@ const TableView = ({ apiKey }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [wishlistStates, setWishlistStates] = useState({});
   const [moviesPerPage, setMoviesPerPage] = useState(6);
+  const tableBodyRef = useRef(null);
   const containerRef = useRef(null);
+  const paginationRef = useRef(null);
   const currentUser = authService.getCurrentUser();
 
   // 반응형으로 moviesPerPage 조정
   useEffect(() => {
     const calculateMoviesPerPage = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !paginationRef.current) return;
       
-      const containerHeight = window.innerHeight - 250; // 헤더, 페이지네이션 등 여유 공간
+      // 전체 컨테이너 높이에서 페이지네이션 높이를 뺀 공간
+      const availableHeight = containerRef.current.clientHeight - paginationRef.current.clientHeight - 16; // 16px는 마진
       const rowHeight = 96; // 각 영화 행의 높이 (padding 포함)
-      const maxMovies = Math.floor(containerHeight / rowHeight);
+      const maxMovies = Math.floor((availableHeight - 56) / rowHeight); // 56px는 헤더 높이
       
       setMoviesPerPage(Math.max(1, maxMovies)); // 최소 1개는 표시
     };
@@ -37,7 +40,6 @@ const TableView = ({ apiKey }) => {
     };
   }, []);
 
-  // 영화 데이터 가져오기
   useEffect(() => {
     const fetchMovies = async () => {
       setIsLoading(true);
@@ -48,7 +50,6 @@ const TableView = ({ apiKey }) => {
         setMovies(response.data.results);
         setTotalPages(Math.min(response.data.total_pages, 500));
         
-        // 위시리스트 상태 업데이트
         if (currentUser) {
           const states = {};
           response.data.results.forEach(movie => {
@@ -81,14 +82,14 @@ const TableView = ({ apiKey }) => {
       [movie.id]: wasAdded
     }));
   };
-  // src/components/popular/TableView.js - Part 2
- return (
-    <div className="flex flex-col h-[calc(100vh-200px)] justify-between">
-      <div ref={containerRef} className="flex-1 min-h-0">
+
+  return (
+    <div ref={containerRef} className="flex flex-col h-[calc(100vh-180px)] justify-between">
+      <div className="flex-1 min-h-0">
         {/* Table Container */}
         <div className="h-full flex flex-col">
           {/* Table Header */}
-          <div className="bg-gray-800 rounded-t-lg sticky top-0 z-10">
+          <div className="bg-gray-800 rounded-t-lg">
             <div className="grid grid-cols-14 gap-4 px-6 py-4 text-gray-200 font-semibold items-center">
               <div className="col-span-1 text-center text-sm">#</div>
               <div className="col-span-2 text-sm">포스터</div>
@@ -99,9 +100,9 @@ const TableView = ({ apiKey }) => {
               <div className="col-span-1 text-center text-sm whitespace-nowrap">찜하기</div>
             </div>
           </div>
- 
+
           {/* Table Body */}
-          <div className="bg-gray-900 rounded-b-lg flex-1">
+          <div ref={tableBodyRef} className="bg-gray-900 flex-1 rounded-b-lg">
             {movies.slice(0, moviesPerPage).map((movie, index) => (
               <motion.div
                 key={movie.id}
@@ -114,7 +115,7 @@ const TableView = ({ apiKey }) => {
                 <div className="col-span-1 text-center text-gray-400 font-medium">
                   {(currentPage - 1) * moviesPerPage + index + 1}
                 </div>
- 
+
                 {/* Movie Poster */}
                 <div className="col-span-2">
                   <div className="relative aspect-[2/3] w-16 rounded-lg overflow-hidden">
@@ -127,7 +128,7 @@ const TableView = ({ apiKey }) => {
                     <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
                   </div>
                 </div>
- 
+
                 {/* Title */}
                 <div className="col-span-4">
                   <div className="font-medium text-white hover:text-blue-400 cursor-pointer transition-colors truncate">
@@ -137,7 +138,7 @@ const TableView = ({ apiKey }) => {
                     {movie.original_title}
                   </div>
                 </div>
- 
+
                 {/* Release Date */}
                 <div className="col-span-2 text-center text-gray-300">
                   {new Date(movie.release_date).toLocaleDateString('ko-KR', {
@@ -146,7 +147,7 @@ const TableView = ({ apiKey }) => {
                     day: 'numeric'
                   })}
                 </div>
- 
+
                 {/* Rating */}
                 <div className="col-span-2 text-center">
                   <div className="inline-flex items-center space-x-1 bg-gray-800 px-2 py-1 rounded-full">
@@ -154,7 +155,7 @@ const TableView = ({ apiKey }) => {
                     <span className="text-white">{movie.vote_average.toFixed(1)}</span>
                   </div>
                 </div>
- 
+
                 {/* Language */}
                 <div className="col-span-2 text-center">
                   <span className="px-3 py-1 rounded-full text-xs font-medium 
@@ -162,7 +163,7 @@ const TableView = ({ apiKey }) => {
                     {movie.original_language}
                   </span>
                 </div>
- 
+
                 {/* Wishlist Button */}
                 <div className="col-span-1 text-center">
                   <motion.button
@@ -187,9 +188,9 @@ const TableView = ({ apiKey }) => {
           </div>
         </div>
       </div>
- 
-      {/* Pagination - Fixed at Bottom */}
-      <div className="bg-gray-900/80 backdrop-blur-sm py-4 mt-4">
+
+      {/* Pagination */}
+      <div ref={paginationRef} className="py-4">
         <div className="flex justify-center items-center space-x-4">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -199,7 +200,7 @@ const TableView = ({ apiKey }) => {
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
- 
+
           <div className="flex items-center space-x-2">
             {currentPage > 2 && (
               <>
@@ -212,7 +213,7 @@ const TableView = ({ apiKey }) => {
                 {currentPage > 3 && <span className="text-white">...</span>}
               </>
             )}
- 
+
             {[...Array(5)].map((_, i) => {
               const pageNum = currentPage - 2 + i;
               if (pageNum > 0 && pageNum <= totalPages) {
@@ -232,7 +233,7 @@ const TableView = ({ apiKey }) => {
               }
               return null;
             })}
- 
+
             {currentPage < totalPages - 1 && (
               <>
                 {currentPage < totalPages - 2 && <span className="text-white">...</span>}
@@ -245,7 +246,7 @@ const TableView = ({ apiKey }) => {
               </>
             )}
           </div>
- 
+
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -256,7 +257,7 @@ const TableView = ({ apiKey }) => {
           </button>
         </div>
       </div>
- 
+
       {/* Loading Indicator */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
@@ -265,6 +266,6 @@ const TableView = ({ apiKey }) => {
       )}
     </div>
   );
- };
- 
- export default TableView;
+};
+
+export default TableView;
