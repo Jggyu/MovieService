@@ -30,8 +30,10 @@ const MovieSearch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const apiKey = localStorage.getItem('TMDb-Key');
 
+  // 디바운스 커스텀 훅
   const useDebounce = (value, delay) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
   
@@ -50,18 +52,30 @@ const MovieSearch = () => {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
+  // 필터 변경시 영화 목록 새로 불러오기
   useEffect(() => {
     if (!isSearching) {
-      fetchMovies(currentPage);
+      setCurrentPage(1);
+      setMovies([]);
+      setHasMore(true);
+      fetchMovies(1);
     }
-  }, [filters, currentPage]);
+  }, [filters]);
 
+  // 검색어 변경시 검색 실행
   useEffect(() => {
     if (debouncedSearchQuery) {
       handleSearch(debouncedSearchQuery);
+    } else if (debouncedSearchQuery === '') {
+      setIsSearching(false);
+      setCurrentPage(1);
+      setMovies([]);
+      setHasMore(true);
+      fetchMovies(1);
     }
   }, [debouncedSearchQuery]);
 
+  // 필터링된 영화 가져오기
   const fetchMovies = async (page = 1) => {
     setLoading(true);
     try {
@@ -71,9 +85,16 @@ const MovieSearch = () => {
         language: 'ko-KR',
         page: page.toString(),
         sort_by: filters.sort,
+        // 평점 필터
+        ...(filters.rating && { 
+          'vote_average.gte': filters.rating,
+          'vote_count.gte': 50
+        }),
+        // 장르 필터
         ...(filters.genre.length && { with_genres: filters.genre.join(',') }),
+        // 연도 필터
         ...(filters.year && { primary_release_year: filters.year }),
-        ...(filters.rating && { 'vote_average.gte': filters.rating }),
+        // 언어 필터
         ...(filters.language.length && { with_original_language: filters.language.join(',') })
       });
 
@@ -85,6 +106,9 @@ const MovieSearch = () => {
       } else {
         setMovies(prev => [...prev, ...data.results]);
       }
+
+      // 더 불러올 데이터가 있는지 확인
+      setHasMore(data.page < data.total_pages);
     } catch (error) {
       console.error('Error fetching movies:', error);
     } finally {
@@ -92,10 +116,14 @@ const MovieSearch = () => {
     }
   };
 
+  // 영화 검색
   const handleSearch = async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
       setIsSearching(false);
+      setCurrentPage(1);
+      setMovies([]);
+      setHasMore(true);
       fetchMovies(1);
       return;
     }
@@ -108,6 +136,7 @@ const MovieSearch = () => {
       );
       const data = await response.json();
       setSearchResults(data.results);
+      setHasMore(false); // 검색 모드에서는 무한 스크롤 비활성화
     } catch (error) {
       console.error('Error searching movies:', error);
     } finally {
@@ -115,13 +144,19 @@ const MovieSearch = () => {
     }
   };
 
+  // 필터 변경 핸들러
   const handleFilterChange = (newFilters) => {
     setCurrentPage(1);
+    setMovies([]);
+    setHasMore(true);
     setFilters(newFilters);
   };
 
+  // 필터 초기화 핸들러
   const handleResetFilters = () => {
     setCurrentPage(1);
+    setMovies([]);
+    setHasMore(true);
     setFilters({
       genre: [],
       rating: null,
@@ -129,6 +164,14 @@ const MovieSearch = () => {
       sort: 'popularity.desc',
       language: []
     });
+  };
+
+  // 다음 페이지 로드 핸들러
+  const handleLoadMore = () => {
+    if (!loading && hasMore && !isSearching) {
+      setCurrentPage(prev => prev + 1);
+      fetchMovies(currentPage + 1);
+    }
   };
 
   return (
@@ -151,7 +194,7 @@ const MovieSearch = () => {
           </p>
         </div>
 
-        {/* Search Bar with Enhanced Animation */}
+        {/* Search Bar */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,53 +248,52 @@ const MovieSearch = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Filter Controls & Results 부분은 그대로 유지 */}
         {/* Filter Controls */}
         <div className="mb-8">
-            <motion.button
+          <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className="w-full px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl
-                        text-white flex items-center justify-between backdrop-blur-sm"
-            >
+                     text-white flex items-center justify-between backdrop-blur-sm"
+          >
             <span className="flex items-center">
-                <FontAwesomeIcon icon={faFilter} className="mr-2" />
-                필터 설정
+              <FontAwesomeIcon icon={faFilter} className="mr-2" />
+              필터 설정
             </span>
             <FontAwesomeIcon icon={isFilterOpen ? faChevronUp : faChevronDown} />
-            </motion.button>
+          </motion.button>
 
-            <AnimatePresence>
+          <AnimatePresence>
             {isFilterOpen && (
-                <motion.div
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
-                >
+              >
                 <SearchFilters
-                    filters={filters}
-                    onChange={handleFilterChange}
-                    onReset={handleResetFilters}
+                  filters={filters}
+                  onChange={handleFilterChange}
+                  onReset={handleResetFilters}
                 />
-                </motion.div>
+              </motion.div>
             )}
-            </AnimatePresence>
+          </AnimatePresence>
         </div>
 
         {/* Active Filters */}
         <FilterChips filters={filters} onRemove={handleFilterChange} />
 
-        {/* Results with Enhanced Props */}
+        {/* Results */}
         <SearchResults 
           movies={isSearching ? searchResults : movies} 
           loading={loading}
           isSearching={isSearching}
           searchQuery={searchQuery}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
+          hasMore={hasMore}
+          onLoadMore={handleLoadMore}
         />
       </div>
     </div>
