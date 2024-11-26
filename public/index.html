@@ -25,16 +25,6 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
-    <script>
-      // GitHub Pages에서 SPA의 라우팅을 처리하기 위한 스크립트
-      (function() {
-        const redirect = sessionStorage.redirect;
-        delete sessionStorage.redirect;
-        if (redirect && redirect !== location.href) {
-          history.replaceState(null, null, redirect);
-        }
-      })();
-    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -51,3 +41,13 @@
     -->
   </body>
 </html>
+<script>
+  // GitHub Pages에서 SPA의 라우팅을 처리하기 위한 스크립트
+  (function() {
+    const redirect = sessionStorage.redirect;
+    delete sessionStorage.redirect;
+    if (redirect && redirect !== location.href) {
+      history.replaceState(null, null, redirect);
+    }
+  })();
+</script>
