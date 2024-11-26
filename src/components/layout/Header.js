@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { authService } from '../../services/authService';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [userId, setUserId] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,8 +17,14 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    setUserId(currentUser || '');
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('TMDb-Key');
+    authService.logout();
+    setUserId('');
     navigate('/signin');
   };
 
@@ -77,19 +85,32 @@ const Header = () => {
             </nav>
           </div>
 
-          <motion.button
-            onClick={handleLogout}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className={`px-6 py-2 text-white/90 font-medium transition-all duration-300
-                        hover:text-white relative group
-                        ${isScrolled ? 'text-sm' : 'text-base'}`}
+          <div className="flex items-center space-x-4">
+            {userId && (
+              <motion.span
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={`text-white/90 font-medium
+                            ${isScrolled ? 'text-sm' : 'text-base'}`}
+              >
+                {userId}
+              </motion.span>
+            )}
+            <motion.button
+              onClick={handleLogout}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className={`px-6 py-2 text-white/90 font-medium transition-all duration-300
+                          hover:text-white relative group
+                          ${isScrolled ? 'text-sm' : 'text-base'}`}
             >
-            로그아웃
-            <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white/30 
-                            transform origin-left scale-x-0 group-hover:scale-x-100 
-                            transition-transform duration-300"/>
-          </motion.button>
+              로그아웃
+              <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white/30 
+                              transform origin-left scale-x-0 group-hover:scale-x-100 
+                              transition-transform duration-300"/>
+            </motion.button>
+          </div>
         </div>
 
         <motion.button
