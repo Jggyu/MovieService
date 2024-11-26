@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const Header = () => {
@@ -44,25 +44,25 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-8 relative">
         <div className="flex items-center justify-between h-full relative">
           <div className="flex items-center space-x-12">
-            <motion.a
-              href="/"
+            <Link
+              to="/"
               whileHover={{ scale: 1.05 }}
               className={`text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500  
                        bg-clip-text text-transparent hover:from-purple-400 hover:to-pink-400 
                        transition-all duration-300 ${isScrolled ? 'text-2xl' : 'text-3xl'}`}
             >
               MOVIEFLIX
-            </motion.a>
+            </Link>
             <nav className="hidden md:flex items-center space-x-2">
               {[
-                { href: "/", label: "홈" },
-                { href: "/popular", label: "대세 콘텐츠" },
-                { href: "/wishlist", label: "내가 찜한 리스트" },
-                { href: "/search", label: "찾아보기" }
+                { to: "/", label: "홈" },
+                { to: "/popular", label: "대세 콘텐츠" },
+                { to: "/wishlist", label: "내가 찜한 리스트" },
+                { to: "/search", label: "찾아보기" }
               ].map((item) => (
-                <motion.a
-                  key={item.href}
-                  href={item.href}
+                <Link
+                  key={item.to}
+                  to={item.to}
                   whileHover={{ scale: 1.05 }}
                   className={`relative px-5 py-2 text-gray-200 hover:text-white 
                            transition-colors duration-200 group
@@ -72,7 +72,7 @@ const Header = () => {
                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r 
                                from-purple-500 to-pink-500 transform scale-x-0 
                                group-hover:scale-x-100 transition-transform duration-300" />
-                </motion.a>
+                </Link>
               ))}
             </nav>
           </div>
