@@ -309,15 +309,6 @@ const Wishlist = () => {
                   >
                     닫기
                   </button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium
-                             hover:bg-blue-700 transition-colors duration-200 flex items-center"
-                  >
-                    <FontAwesomeIcon icon={faPlay} className="mr-2" />
-                    예고편 보기
-                  </motion.button>
                 </div>
               </div>
             </motion.div>
