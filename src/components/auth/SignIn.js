@@ -102,7 +102,7 @@ const SignIn = () => {
  
       {/* Content */}
       <div className="relative min-h-screen flex items-center justify-center p-4 md:px-4">
-        <div className="relative w-full md:w-[900px] md:h-[600px] max-w-[95%] md:perspective md:preserve-3d">
+        <div className="relative w-full md:w-[900px] md:h-[700px] max-w-[95%] md:perspective md:preserve-3d">
           <motion.div 
             className="relative w-full h-full md:preserve-3d transition-all duration-700"
             animate={{ rotateY: isLoginVisible ? 0 : 180 }}
