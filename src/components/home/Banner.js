@@ -6,7 +6,10 @@ import {
   faStar, 
   faCalendar,
   faFilm,
-  faLanguage
+  faLanguage,
+  faInfo,
+  faQuoteLeft,
+  faTicket
 } from '@fortawesome/free-solid-svg-icons';
 
 const Banner = ({ movies }) => {
@@ -136,6 +139,13 @@ const Banner = ({ movies }) => {
                          line-clamp-3 md:line-clamp-4">
                 {currentMovie.overview || "줄거리 정보가 없습니다."}
               </p>
+
+              <div className="flex items-center space-x-2">
+                <FontAwesomeIcon icon={faTicket} className="text-gray-300" />
+                <span className="text-sm md:text-base text-gray-300">
+                  Popularity: {currentMovie.popularity.toFixed(0)}
+                </span>
+              </div>
             </div>
           </div>
 
