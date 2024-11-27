@@ -8,11 +8,7 @@ import {
   faHeart,
   faChevronLeft,
   faChevronRight,
-  faPlay,
-  faInfo,
-  faLanguage,
-  faThumbsUp,
-  faClock
+  faLanguage
 } from '@fortawesome/free-solid-svg-icons';
 import { authService } from '../../services/authService';
 import { wishlistService } from '../../services/wishlistService';
@@ -27,6 +23,7 @@ const MovieRow = ({ title, fetchUrl }) => {
   const [genres, setGenres] = useState({});
   const [wishlistStates, setWishlistStates] = useState({});
   const rowRef = useRef(null);
+  const sliderRef = useRef(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const apiKey = localStorage.getItem('TMDb-Key');
   const currentUser = authService.getCurrentUser();
@@ -53,7 +50,6 @@ const MovieRow = ({ title, fetchUrl }) => {
   useEffect(() => {
     const fetchMovies = async () => {
       if (isLoading) return;
-
       try {
         setIsLoading(true);
         const response = await axios.get(fetchUrl);
@@ -94,27 +90,26 @@ const MovieRow = ({ title, fetchUrl }) => {
       [movie.id]: wasAdded
     }));
   }, [currentUser]);
-
   const calculateScrollMetrics = useCallback(() => {
-    if (!rowRef.current) return { maxScroll: 0 };
+    if (!sliderRef.current || !rowRef.current) return { maxScroll: 0 };
     
     const container = rowRef.current;
+    const slider = sliderRef.current;
     const containerWidth = container.offsetWidth;
-    const itemWidth = isMobile ? 200 : 280;
-    const gap = 30;
-    const totalWidth = movies.length * (itemWidth + gap);
-    const maxScroll = -(totalWidth - containerWidth + gap);
+    const sliderWidth = slider.scrollWidth;
+    const maxScroll = -(sliderWidth - containerWidth);
     
-    return { maxScroll, itemWidth };
-  }, [movies.length, isMobile]);
-
+    return { maxScroll };
+  }, []);
+ 
   const scrollToPosition = useCallback((newScrollX) => {
     const { maxScroll } = calculateScrollMetrics();
     const clampedScroll = Math.max(Math.min(newScrollX, 0), maxScroll);
     setScrollX(clampedScroll);
   }, [calculateScrollMetrics]);
-
+ 
   const handleWheel = useCallback((e) => {
+    if (!rowRef.current.contains(e.target)) return;
     e.preventDefault();
     const sensitivity = 1.5;
     const delta = e.deltaY * sensitivity;
@@ -122,9 +117,12 @@ const MovieRow = ({ title, fetchUrl }) => {
   }, [scrollX, scrollToPosition]);
   
   const handleClick = useCallback((direction) => {
-    const moveAmount = window.innerWidth * 0.8;
-    scrollToPosition(scrollX + (direction === 'left' ? moveAmount : -moveAmount));
-  }, [scrollX, scrollToPosition]);
+    const { maxScroll } = calculateScrollMetrics();
+    const moveAmount = window.innerWidth * 0.6;
+    const newScrollX = scrollX + (direction === 'left' ? moveAmount : -moveAmount);
+    scrollToPosition(Math.max(Math.min(newScrollX, 0), maxScroll));
+  }, [scrollX, scrollToPosition, calculateScrollMetrics]);
+ 
   const handleDragStart = (e) => {
     setIsDragging(true);
     setStartX(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
@@ -159,10 +157,9 @@ const MovieRow = ({ title, fetchUrl }) => {
     if (!element) return;
  
     const options = { passive: false };
-    
     element.addEventListener('wheel', handleWheel, options);
-    element.addEventListener('touchstart', handleDragStart, { passive: true });
-    element.addEventListener('touchmove', handleDragMove, { passive: true });
+    element.addEventListener('touchstart', handleDragStart);
+    element.addEventListener('touchmove', handleDragMove);
     element.addEventListener('touchend', handleDragEnd);
     element.addEventListener('mousedown', handleDragStart);
     element.addEventListener('mousemove', handleDragMove);
@@ -182,7 +179,7 @@ const MovieRow = ({ title, fetchUrl }) => {
   }, [handleWheel, handleDragMove]);
  
   return (
-    <div className="py-8 space-y-4 group select-none relative">
+    <div className="relative py-8 space-y-4 group select-none">
       <div className="px-4 md:px-8 flex items-center space-x-4">
         <h2 className="text-xl md:text-2xl font-bold text-white tracking-wide 
                       transition-all duration-300 group-hover:text-gray-200 
@@ -195,7 +192,7 @@ const MovieRow = ({ title, fetchUrl }) => {
         </h2>
       </div>
  
-      <div className="relative touch-pan-x" ref={rowRef}>
+      <div className="relative touch-pan-x overflow-hidden" ref={rowRef}>
         <motion.button
           whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.7)' }}
           whileTap={{ scale: 0.9 }}
@@ -215,7 +212,8 @@ const MovieRow = ({ title, fetchUrl }) => {
  
         <div className="overflow-visible px-4">
           <motion.div 
-            className="flex gap-8"
+            ref={sliderRef}
+            className="flex gap-10" // 간격 증가
             style={{ 
               x: scrollX,
               cursor: isDragging ? 'grabbing' : 'grab'
@@ -229,16 +227,12 @@ const MovieRow = ({ title, fetchUrl }) => {
             {movies.map((movie) => (
               <motion.div 
                 key={movie.id}
-                className={`
-                  relative flex-none
-                  w-[200px] md:w-[280px]
-                  transform-gpu transition-all duration-300
-                  hover:z-30
-                `}
+                className="relative flex-none w-[200px] md:w-[280px] transform-gpu"
                 initial={false}
                 whileHover={{
-                  scale: 1.4,
-                  transition: { duration: 0.3 }
+                  scale: 1.2,
+                  zIndex: 30,
+                  transition: { duration: 0.2 }
                 }}
                 onHoverStart={() => debouncedSetHoveredMovie(movie.id)}
                 onHoverEnd={() => setHoveredMovie(null)}
@@ -308,7 +302,7 @@ const MovieRow = ({ title, fetchUrl }) => {
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.1 }}
-                            className="flex items-center gap-3"
+                            className="flex flex-wrap items-center gap-2"
                           >
                             <div className="flex items-center bg-yellow-500/20 
                                           px-2.5 py-1 rounded-full backdrop-blur-sm">
@@ -367,33 +361,10 @@ const MovieRow = ({ title, fetchUrl }) => {
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.3 }}
                             className="text-white/80 text-sm leading-relaxed
-                                     line-clamp-3 mt-2"
+                                     line-clamp-4 mt-2"
                           >
                             {movie.overview || "줄거리 정보가 없습니다."}
                           </motion.p>
- 
-                          <motion.div
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            className="flex gap-2 mt-3"
-                          >
-                            <button className="flex items-center gap-2 px-4 py-2
-                                             bg-white/90 hover:bg-white
-                                             text-black text-sm font-semibold
-                                             rounded-full transition-all duration-200">
-                              <FontAwesomeIcon icon={faPlay} />
-                              재생
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2
-                                             bg-gray-800/80 hover:bg-gray-800
-                                             text-white text-sm font-semibold
-                                             rounded-full transition-all duration-200
-                                             backdrop-blur-sm">
-                              <FontAwesomeIcon icon={faInfo} />
-                              상세정보
-                            </button>
-                          </motion.div>
                         </div>
                       </motion.div>
                     )}
