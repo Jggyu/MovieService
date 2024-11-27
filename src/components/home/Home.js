@@ -38,28 +38,28 @@ const Home = () => {
       <main className="pb-20">
         {featuredMovies.length > 0 && <Banner movies={featuredMovies} />}
         <div className="space-y-12 mt-8 md:mt-12">
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="인기 영화" fetchUrl={popularMoviesUrl} />
-          </div>
-          <div>
+          </div >
+          <div className="overflow-hidden">
             <MovieRow title="최신 개봉작" fetchUrl={newReleasesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="평점이 높은 영화" fetchUrl={topRatedMoviesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="액션 영화" fetchUrl={actionMoviesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="모험 영화" fetchUrl={adventureMoviesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="애니메이션" fetchUrl={animationMoviesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="코미디 영화" fetchUrl={comedyMoviesUrl} />
           </div>
-          <div>
+          <div className="overflow-hidden">
             <MovieRow title="개봉 예정작" fetchUrl={upcomingMoviesUrl} />
           </div>
         </div>
