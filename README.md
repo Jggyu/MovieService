@@ -1,70 +1,142 @@
-# Getting Started with Create React App
+# MovieService 🎬
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> TMDb API를 활용한 영화 정보 및 컨텐츠 관리 서비스
 
-## Available Scripts
+이 프로젝트는 사용자가 영화 정보를 탐색하고 관리할 수 있는 웹 애플리케이션입니다. TMDb API를 통해 다양한 영화 정보를 제공하며, 사용자별 위시리스트 기능을 포함하고 있습니다.
 
-In the project directory, you can run:
+## 주요 기능 🌟
 
-### `npm start`
+* **인증 시스템**: 이메일 기반 회원가입 및 로그인
+* **영화 탐색**: 인기/최신/장르별 영화 목록 제공
+* **위시리스트**: 개인화된 영화 컬렉션 관리
+* **검색 기능**: 영화 제목 기반 검색
+* **반응형 디자인**: 모든 디바이스에 최적화된 UI/UX
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 기술 스택 🛠
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Frontend
+* React 18
+* TailwindCSS
+* Framer Motion
 
-### `npm test`
+### 상태 관리 & 라우팅
+* React Router v6
+* LocalStorage
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### API & 통신
+* Axios
+* TMDb API
 
-### `npm run build`
+### 개발 도구
+* npm
+* Git
+* GitHub Actions
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 설치 및 실행 가이드 🚀
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. 저장소 클론
+```bash
+git clone https://github.com/jggyu/MovieService.git
+cd MovieService
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. 의존성 설치
+```bash
+npm install
+```
 
-### `npm run eject`
+3. 환경 설정
+* TMDb API 키 발급 (TMDb 웹사이트)
+* 회원가입 시 API 키 입력 필요
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. 개발 서버 실행
+```bash
+npm start
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+5. 프로덕션 빌드
+```bash
+npm run build
+```
+## 프로젝트 구조 📁
+```bash
+MovieService/
+├── public/
+│   ├── index.html
+│   └── 404.html
+├── src/
+│   ├── components/
+│   │   ├── auth/
+│   │   │   └── SignIn.js
+│   │   ├── home/
+│   │   │   ├── Banner.js
+│   │   │   ├── MovieRow.js
+│   │   │   └── Home.js
+│   │   ├── popular/
+│   │   │   ├── Popular.js
+│   │   │   ├── TableView.js
+│   │   │   └── InfiniteView.js
+│   │   ├── search/
+│   │   │   ├── MovieSearch.js
+│   │   │   ├── SearchFilters.js
+│   │   │   └── SearchResults.js
+│   │   └── layout/
+│   │       └── Header.js
+│   ├── services/
+│   │   ├── authService.js
+│   │   ├── urlService.js
+│   │   └── wishlistService.js
+│   ├── guards/
+│   │   └── AuthGuard.js
+│   ├── App.js
+│   └── index.js
+├── package.json
+└── tailwind.config.js
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 주요 컴포넌트 설명 📌
+### Auth
+* `SignIn.js`: 로그인/회원가입 기능 제공
+* `AuthGuard.js`: 인증 상태 관리 및 보호된 라우트 처리
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Auth
+* `Banner.js`: 메인 페이지 상단 배너 및 추천 영화 표시
+* `MovieRow.js`: 카테고리별 영화 목록 슬라이더 구현
 
-## Learn More
+### Popular
+* `TableView.js`: 테이블 형식의 영화 목록 뷰
+* `InfiniteView.js`: 무한 스크롤 형식의 영화 목록 뷰
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 인증 시스템 🔐
+* 이메일 형식 검증
+* TMDb API 키 유효성 검사
+* Remember Me 기능
+* 자동 로그인 지원
+* 세션/로컬 스토리지 기반 상태 관리
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## UI/UX 특징 🎨
+* 반응형 디자인 구현
+* Framer Motion을 활용한 부드러운 애니메이션
+* 다크 테마 기반의 모던한 디자인
+* 직관적인 사용자 인터페이스
 
-### Code Splitting
+## 배포 프로세스 🔄
+* GitHub Actions를 통한 자동 배포 구현:
+* develop 브랜치 푸시 시 자동 배포
+* GitHub Pages를 통한 호스팅
+* SPA 라우팅 지원을 위한 404 페이지 구성
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 추가 참고사항 📝
+* TMDb API 키는 회원가입 시 필수로 입력해야 합니다
+* 모든 API 요청은 한국어(ko-KR) 기반으로 설정되어 있습니다
+* 위시리스트 데이터는 로컬 스토리지에 저장됩니다
 
-### Analyzing the Bundle Size
+## 기여 방법 👥
+1. Fork the repository
+2. Create your feature branch (git checkout -b feature/AmazingFeature)
+3. Commit your changes (git commit -m 'Add some AmazingFeature')
+4. Push to the branch (git push origin feature/AmazingFeature)
+5. Open a Pull Request
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 라이선스 📜
+이 프로젝트는 MIT 라이선스 하에 있습니다. 자세한 내용은 LICENSE 파일을 참조하세요.
