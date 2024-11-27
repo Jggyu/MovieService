@@ -10,7 +10,7 @@ import { AuthGuard } from './guards/AuthGuard';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/MovieService">  {/* basename 추가 */}
       <Routes>
         {/* 초기 경로 "/" 접속 시 인증 상태 체크 후 리다이렉트 */}
         <Route

@@ -96,24 +96,40 @@ const SearchFilters = ({ filters, onChange, onReset }) => {
 
         {/* Rating Filter */}
         <div className="space-y-3">
-          <h3 className="text-base font-semibold text-white flex items-center">
+        <h3 className="text-base font-semibold text-white flex items-center">
             <FontAwesomeIcon icon={faStar} className="mr-2 text-yellow-500" />
             최소 평점
-          </h3>
-          <div className="space-y-2">
+        </h3>
+        <div className="space-y-4">
             <input
-              type="range"
-              min="0"
-              max="10"
-              step="0.5"
-              value={filters.rating || 0}
-              onChange={(e) => onChange({ ...filters, rating: parseFloat(e.target.value) || null })}
-              className="w-full accent-yellow-500"
+            type="range"
+            min="0"
+            max="10"
+            step="0.5"
+            value={filters.rating || 0}
+            onChange={(e) => {
+                const value = parseFloat(e.target.value);
+                onChange({ 
+                ...filters, 
+                rating: value === 0 ? null : value 
+                });
+            }}
+            className="w-full accent-yellow-500"
             />
-            <div className="text-center text-sm text-white">
-              {filters.rating ? `${filters.rating}점 이상` : '제한 없음'}
+            <div className="flex justify-between items-center">
+            <div className="text-sm text-white">
+                {filters.rating ? `${filters.rating}점 이상` : '제한 없음'}
             </div>
-          </div>
+            {filters.rating && (
+                <button
+                onClick={() => onChange({ ...filters, rating: null })}
+                className="text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                초기화
+                </button>
+            )}
+            </div>
+        </div>
         </div>
 
         {/* Year Filter */}
