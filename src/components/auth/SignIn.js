@@ -101,10 +101,10 @@ const SignIn = () => {
       </div>
  
       {/* Content */}
-      <div className="relative min-h-screen flex items-center justify-center p-4 md:px-4">
-        <div className="relative w-full md:w-[900px] md:h-[600px] max-w-[95%] md:perspective md:preserve-3d">
+      <div className="relative min-h-screen flex items-center justify-center px-4">
+        <div className="relative w-[900px] h-[640px] max-w-[95%] perspective preserve-3d">
           <motion.div 
-            className="relative w-full h-full md:preserve-3d transition-all duration-700"
+            className="relative w-full h-full preserve-3d transition-all duration-700"
             animate={{ rotateY: isLoginVisible ? 0 : 180 }}
             transition={{ duration: 0.7, ease: [0.4, 0.0, 0.2, 1] }}
           >
@@ -115,7 +115,7 @@ const SignIn = () => {
               rounded-2xl overflow-hidden
               shadow-[0_8px_32px_rgba(0,0,0,0.3)]
               border border-white/20
-              p-6 md:p-16
+              p-16
               transition-all duration-500
             `}>
               <div className="relative z-10">
@@ -205,13 +205,13 @@ const SignIn = () => {
 
            {/* Register Card */}
            <div className={`
-             absolute w-full h-full backface-hidden [transform:rotateY(180deg)]
-             bg-white/10 backdrop-blur-2xl
-             rounded-2xl overflow-hidden
-             shadow-[0_8px_32px_rgba(0,0,0,0.3)]
-             border border-white/20
-             p-6 md:p-16
-             transition-all duration-500
+              absolute w-full h-full backface-hidden [transform:rotateY(180deg)]
+              bg-white/10 backdrop-blur-2xl
+              rounded-2xl overflow-hidden
+              shadow-[0_8px_32px_rgba(0,0,0,0.3)]
+              border border-white/20
+              p-16
+              transition-all duration-500
            `}>
              <div className="relative z-10">
                <h2 className="text-3xl md:text-5xl font-bold text-white text-center mb-8 md:mb-12">
