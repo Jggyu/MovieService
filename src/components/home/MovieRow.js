@@ -73,23 +73,6 @@ const MovieRow = ({ title, fetchUrl }) => {
     fetchMovies();
   }, [fetchUrl, currentUser]);
 
-  const debouncedSetHoveredMovie = useCallback((movieId) => {
-    const timer = setTimeout(() => {
-      setHoveredMovie(movieId);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleWishlistToggle = useCallback((movie, event) => {
-    event.stopPropagation();
-    if (!currentUser) return;
-
-    const wasAdded = wishlistService.toggleWishlist(currentUser, movie);
-    setWishlistStates(prev => ({
-      ...prev,
-      [movie.id]: wasAdded
-    }));
-  }, [currentUser]);
   const calculateScrollMetrics = useCallback(() => {
     if (!sliderRef.current || !rowRef.current) return { maxScroll: 0 };
     
@@ -101,13 +84,13 @@ const MovieRow = ({ title, fetchUrl }) => {
     
     return { maxScroll };
   }, []);
- 
+
   const scrollToPosition = useCallback((newScrollX) => {
     const { maxScroll } = calculateScrollMetrics();
     const clampedScroll = Math.max(Math.min(newScrollX, 0), maxScroll);
     setScrollX(clampedScroll);
   }, [calculateScrollMetrics]);
- 
+
   const handleWheel = useCallback((e) => {
     if (!rowRef.current.contains(e.target)) return;
     e.preventDefault();
@@ -115,14 +98,13 @@ const MovieRow = ({ title, fetchUrl }) => {
     const delta = e.deltaY * sensitivity;
     scrollToPosition(scrollX - delta);
   }, [scrollX, scrollToPosition]);
-  
+
   const handleClick = useCallback((direction) => {
     const { maxScroll } = calculateScrollMetrics();
     const moveAmount = window.innerWidth * 0.6;
     const newScrollX = scrollX + (direction === 'left' ? moveAmount : -moveAmount);
     scrollToPosition(Math.max(Math.min(newScrollX, 0), maxScroll));
   }, [scrollX, scrollToPosition, calculateScrollMetrics]);
- 
   const handleDragStart = (e) => {
     setIsDragging(true);
     setStartX(e.type === 'touchstart' ? e.touches[0].clientX : e.clientX);
@@ -140,6 +122,24 @@ const MovieRow = ({ title, fetchUrl }) => {
   const handleDragEnd = () => {
     setIsDragging(false);
   };
+ 
+  const debouncedSetHoveredMovie = useCallback((movieId) => {
+    const timer = setTimeout(() => {
+      setHoveredMovie(movieId);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+ 
+  const handleWishlistToggle = useCallback((movie, event) => {
+    event.stopPropagation();
+    if (!currentUser) return;
+ 
+    const wasAdded = wishlistService.toggleWishlist(currentUser, movie);
+    setWishlistStates(prev => ({
+      ...prev,
+      [movie.id]: wasAdded
+    }));
+  }, [currentUser]);
  
   useEffect(() => {
     const handleResize = () => {
@@ -192,11 +192,11 @@ const MovieRow = ({ title, fetchUrl }) => {
         </h2>
       </div>
  
-      <div className="relative touch-pan-x overflow-hidden" ref={rowRef}>
+      <div className="relative touch-pan-x overflow-visible" ref={rowRef}>
         <motion.button
           whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.7)' }}
           whileTap={{ scale: 0.9 }}
-          className="absolute left-4 top-1/2 z-20 w-12 h-12 
+          className="absolute left-4 top-1/2 z-50 w-12 h-12 
                      flex items-center justify-center
                      bg-black/40 text-white rounded-full 
                      transform -translate-y-1/2 
@@ -210,10 +210,10 @@ const MovieRow = ({ title, fetchUrl }) => {
           <FontAwesomeIcon icon={faChevronLeft} className="text-lg" />
         </motion.button>
  
-        <div className="overflow-visible px-4">
+        <div className="overflow-visible px-4 relative">
           <motion.div 
             ref={sliderRef}
-            className="flex gap-10" // 간격 증가
+            className="flex gap-12" // 카드 간격 조정
             style={{ 
               x: scrollX,
               cursor: isDragging ? 'grabbing' : 'grab'
@@ -227,11 +227,11 @@ const MovieRow = ({ title, fetchUrl }) => {
             {movies.map((movie) => (
               <motion.div 
                 key={movie.id}
-                className="relative flex-none w-[200px] md:w-[280px] transform-gpu"
+                className="relative flex-none w-[180px] md:w-[240px]" // 카드 크기 축소
                 initial={false}
                 whileHover={{
-                  scale: 1.2,
-                  zIndex: 30,
+                  scale: 1.15, // 확대 비율 축소
+                  zIndex: 40,
                   transition: { duration: 0.2 }
                 }}
                 onHoverStart={() => debouncedSetHoveredMovie(movie.id)}
@@ -286,18 +286,18 @@ const MovieRow = ({ title, fetchUrl }) => {
                         transition={{ duration: 0.2 }}
                         className="absolute inset-0 flex flex-col justify-end
                                  bg-gradient-to-t from-black via-black/95 to-transparent
-                                 p-4 space-y-3"
+                                 p-4 space-y-2" // space-y-3에서 space-y-2로 조정
                       >
                         <motion.h3 
                           initial={{ y: 20, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
-                          className="text-white font-bold text-lg md:text-xl 
-                                   leading-tight mb-2 drop-shadow-lg"
+                          className="text-white font-bold text-sm md:text-base 
+                                   leading-tight mb-1" // 텍스트 크기 및 마진 조정
                         >
                           {movie.title}
                         </motion.h3>
  
-                        <div className="space-y-3">
+                        <div className="space-y-2"> {/* space-y-3에서 space-y-2로 조정 */}
                           <motion.div 
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -305,63 +305,31 @@ const MovieRow = ({ title, fetchUrl }) => {
                             className="flex flex-wrap items-center gap-2"
                           >
                             <div className="flex items-center bg-yellow-500/20 
-                                          px-2.5 py-1 rounded-full backdrop-blur-sm">
+                                          px-2 py-0.5 rounded-full backdrop-blur-sm">
                               <FontAwesomeIcon 
                                 icon={faStar} 
-                                className="text-yellow-500 text-sm mr-1.5" 
+                                className="text-yellow-500 text-xs mr-1" 
                               />
-                              <span className="text-yellow-400 text-sm font-semibold">
+                              <span className="text-yellow-400 text-xs font-semibold">
                                 {movie.vote_average.toFixed(1)}
                               </span>
                             </div>
  
-                            <div className="flex items-center text-gray-300 text-sm">
+                            <div className="flex items-center text-gray-300 text-xs">
                               <FontAwesomeIcon 
                                 icon={faCalendar} 
-                                className="mr-1.5 text-gray-400" 
+                                className="mr-1 text-gray-400" 
                               />
                               {new Date(movie.release_date).getFullYear()}
                             </div>
- 
-                            <div className="flex items-center text-gray-300 text-sm">
-                              <FontAwesomeIcon 
-                                icon={faLanguage} 
-                                className="mr-1.5 text-gray-400" 
-                              />
-                              <span className="uppercase">
-                                {movie.original_language}
-                              </span>
-                            </div>
                           </motion.div>
- 
-                          {movie.genre_ids && (
-                            <motion.div 
-                              initial={{ y: 20, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ delay: 0.2 }}
-                              className="flex flex-wrap gap-2"
-                            >
-                              {movie.genre_ids.slice(0, 3).map(genreId => (
-                                <span
-                                  key={genreId}
-                                  className="px-2.5 py-1 text-xs 
-                                           bg-white/10 backdrop-blur-sm
-                                           rounded-full text-white/90
-                                           border border-white/10
-                                           shadow-sm shadow-black/20"
-                                >
-                                  {genres[genreId]}
-                                </span>
-                              ))}
-                            </motion.div>
-                          )}
  
                           <motion.p 
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="text-white/80 text-sm leading-relaxed
-                                     line-clamp-4 mt-2"
+                            transition={{ delay: 0.2 }}
+                            className="text-white/80 text-xs leading-snug
+                                     line-clamp-3"
                           >
                             {movie.overview || "줄거리 정보가 없습니다."}
                           </motion.p>
@@ -378,8 +346,8 @@ const MovieRow = ({ title, fetchUrl }) => {
         <motion.button
           whileHover={{ scale: 1.1, backgroundColor: 'rgba(0,0,0,0.7)' }}
           whileTap={{ scale: 0.9 }}
-          className="absolute right-4 top-1/2 z-20 w-12 h-12 
-                     flex items-center justify-center
+          className="absolute right-4 top-1/2 z-50 w-12 h-12 
+                     flex items-center justify-center<motion.div
                      bg-black/40 text-white rounded-full 
                      transform -translate-y-1/2 
                      backdrop-blur-sm opacity-0 
