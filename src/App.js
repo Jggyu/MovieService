@@ -50,6 +50,7 @@ function App() {
           }
         />
 
+        
         <Route path="/signin" element={<SignIn />} />
         
         {/* 잘못된 경로로 접근 시 인증 상태 체크 후 리다이렉트 */}
